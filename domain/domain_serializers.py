@@ -17,3 +17,11 @@ class DomainSerializer(serializers.ModelSerializer):
             "id",
         )
 
+class DomainCsvSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Domain
+        fields = (
+            'name',
+            'description',
+        )

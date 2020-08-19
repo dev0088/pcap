@@ -57,6 +57,7 @@ THIRD_PARTY_APPS = [
     'coreapi',
     'drf_yasg',
     'nested_admin',
+    'import_export',
 ]
 
 LOCAL_APPS = [
