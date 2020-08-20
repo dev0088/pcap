@@ -44,7 +44,7 @@ urlpatterns = [
     # API urls
     url(r'^apis(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^apis/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    url(r'^swagger-docs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    url(r'^api-docs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^api-token-auth/', views.obtain_auth_token),
     # Authentication urls

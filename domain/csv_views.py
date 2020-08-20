@@ -1,23 +1,79 @@
+import datetime
+import os
 from django.shortcuts import render
 from django.http import HttpResponse
-from .resources import DomainResource
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
+import tablib
 from tablib import Dataset
 from rest_framework.views import APIView
+from rest_framework.exceptions import ParseError
+from rest_framework.parsers import FileUploadParser, MultiPartParser
+from rest_framework.response import Response
+from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
-import datetime
+from drf_yasg import openapi
+from werkzeug.utils import secure_filename
+from .resources import DomainResource
 
 def export_csv(request):
     domain_resource = DomainResource()
     
-    dataset = domain_resource.export()
-    # databset = domain_resource.export_with_custom_delimiter()
-    print('===== dataset: ', dataset)
+    # dataset = domain_resource.export()
+    dataset = domain_resource.export_with_custom_delimiter()
+
     t = datetime.datetime.now()
     t = '{:%Y-%m-%d_%H-%M}'.format(t)
-
-    response = HttpResponse(dataset.csv, content_type='text/csv')
+    
+    response = HttpResponse(dataset, content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="domains-{str_date}.csv"'.format(str_date=t)
+    response['Access-Control-Expose-Headers'] = 'Content-Disposition'
     return response
+
+def import_csv(request):
+    if 'file' not in request.data:
+        raise ParseError("Empty content")
+
+    # Save temp file
+    f = request.data['file']
+    file_name = secure_filename(request.data['fileName'])
+    file_id = file_name
+    tmp_file_dir = 'static/upload/'
+    tmp_file_path = '{tmp_file_dir}/{file_name}'.format(
+            tmp_file_dir = tmp_file_dir,
+            file_name = file_name
+        )
+    stored_path = default_storage.save(tmp_file_path, ContentFile(f.read()))
+    # Read csv file from the temp file
+    new_domains = open(stored_path).read()
+    # Read dataset with custom delimiter
+    dataset = tablib.import_set(
+        new_domains,
+        format='csv',
+        delimiter=settings.IMPORT_EXPORT_CSV_DELIMITER,
+        headers=False
+    )
+    
+    # Check header was appeared
+    first_row = dataset[0]
+    if first_row and first_row[0] == 'name':
+        # Remove first row
+        del dataset[0]
+
+    dataset.headers=['name', 'description']
+    domain_resource = DomainResource()
+    # Test import now
+    result = domain_resource.import_data(dataset, dry_run=True)
+    # Remove temp file
+    os.remove(stored_path)
+
+    if not result.has_errors():
+        # Actually import now
+        domain_resource.import_data(dataset, dry_run=False)
+        return Response(status=status.HTTP_200_OK)
+    
+    return Response(status=status.HTTP_403_FORBIDDEN)
 
 def export_json(request):
     domain_resource = DomainResource()
@@ -33,27 +89,20 @@ def export_excel(request):
     response['Content-Disposition'] = 'attachment; filename="domains.xls"'
     return response
 
-def simple_upload(request):
-    if request.method == 'POST':
-        domain_resource = DomainResource()
-        dataset = Dataset()
-        new_domains = request.FILES['csvfile']
-
-        imported_data = dataset.load(new_domains.read())
-        result = domain_resource.import_data(dataset, dry_run=True)  # Test the data import
-
-        if not result.has_errors():
-            domain_resource.import_data(dataset, dry_run=False)  # Actually import now
-
-    return render(request, 'core/simple_upload.html')
-
 
 class ExportCsv(APIView):
-  """
-  Export csv
-  """
-  def get(self, request, format=None):
-    return export_csv(request)
-    # domains = Domain.objects.all()
-    # serializer = DomainSerializer(domains, many=True)
-    # return Response(serializer.data)
+    def get(self, request, format=None):
+        """
+        Download csv file
+        """
+        return export_csv(request)
+
+
+class ImportCsv(APIView):
+    parser_class = (MultiPartParser,)
+
+    def post(self, request, format=None):
+        """
+        Upload csv file.
+        """
+        return import_csv(request)
