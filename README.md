@@ -15,7 +15,7 @@ Python/Django + JWT auth backend
 	```
 	$ python3.8 -m venv env
 
-	$ source env3/bin/activate
+	$ source env/bin/activate
 
 	$ pip install -r requirements.txt
 	```
