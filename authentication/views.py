@@ -14,6 +14,9 @@ from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.views import ObtainJSONWebToken
 from datetime import datetime
 from pytz import timezone
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from .user_profile_serializers import UserProfileRequestSerializer
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -22,7 +25,7 @@ jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 def jwt_response_payload_handler(token, user=None, request=None):
     return {
         'token': token,
-        'user': UserSerializer(user, context={'request': request}).data
+        'user': UserProfileRequestSerializer(user).data(user, context={'request': request}).data
     }
 
 class LoginView(ObtainJSONWebToken):
@@ -42,7 +45,7 @@ class LoginView(ObtainJSONWebToken):
             password = req.get('password')
             username = req.get('username')
 
-            if email is None or password is None:
+            if username is None or password is None:
                 return Response(
                     {
                         'success': False, 
@@ -75,18 +78,19 @@ class LoginView(ObtainJSONWebToken):
                     status=status.HTTP_403_FORBIDDEN
                 )
 
-
             # make token from user found by email
             payload = jwt_payload_handler(user)
             token = jwt_encode_handler(payload)
-            user = UserSerializer(user).data
 
+        # Get user record from token user.
+        user_record = User.objects.get(id=user['user_id'])
+        user_data = UserProfileRequestSerializer(user_record).data
         return Response(
             {
                 'success': True,
                 'message': 'Successfully logged in',
                 'token': token,
-                'user': user
+                'user': user_data
             },
             status=status.HTTP_200_OK
         )
@@ -101,3 +105,49 @@ class LogoutView(APIView):
             pass
         
         return Response(status=status.HTTP_200_OK)
+
+class ProfileDetail(APIView):
+  id_path_param = openapi.Parameter(
+          'id',
+          openapi.IN_PATH,
+          description="User ID",
+          type=openapi.TYPE_INTEGER
+  )
+  
+  def get_object(self, pk):
+    try:
+      return User.objects.get(pk=pk)
+    except User.DoesNotExist:
+      raise Http404
+
+
+  @swagger_auto_schema(
+    request_body=None,
+    responses={200: UserProfileRequestSerializer(many=False)}
+  )
+  def get(self, request, pk, format=None):
+    """
+    Get a domain info
+    """
+    item = self.get_object(pk)
+    serializer = UserProfileRequestSerializer(item)
+    return Response(serializer.data)
+
+  @swagger_auto_schema(
+    # manual_parameters=[id_path_param],
+    request_body=UserProfileRequestSerializer,
+    responses={200: UserProfileRequestSerializer(many=False)}
+  )
+  def put(self, request, pk, format=None):
+    """
+    Update info of a user
+    """
+    item = self.get_object(pk)
+    data = request.data
+    serializer = UserProfileRequestSerializer(item, data=data)
+    if serializer.is_valid():
+        serializer.save()
+    else:
+        print('===== invalid serializer: ', item)
+    
+    return Response(serializer.data)
