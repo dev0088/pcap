@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^token/refresh/', refresh_jwt_token),
     url(r'^token/verify/', verify_jwt_token),
     url(r'^profile/(?P<pk>[0-9]+)/', views.ProfileDetail.as_view()),
+    url(r'^profile/change_password/(?P<pk>[0-9]+)/', views.ChangePasswordView.as_view()),
 ]
