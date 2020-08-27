@@ -50,6 +50,8 @@ urlpatterns = [
     # Authentication urls
     url(r'^api/v1/auth/', include('authentication.urls')),
     url(r'^api/v1/domain/', include('domain.urls')),
+     url(r'^api/v1/http_header_description/', include('http_header_description.urls')),
+     url(r'^api/v1/http_header_value_description/', include('http_header_value_description.urls')),
     # Admin URL
     path('admin/', admin.site.urls),
 ]

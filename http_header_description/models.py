@@ -1,9 +1,9 @@
 from django.db import models
 from django.utils import timezone
 
-class Domain(models.Model):
-    name = models.CharField(max_length=100, blank=False, default='')
-    description = models.TextField(max_length=600, blank=True, default='')
+class HttpHeaderDescription(models.Model):
+    name = models.CharField(max_length=100, blank=False, null=False)
+    description = models.TextField(max_length=600, blank=False, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

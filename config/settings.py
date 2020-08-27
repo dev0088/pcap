@@ -63,6 +63,8 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'authentication',
     'domain',
+    'http_header_description',
+    'http_header_value_description',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -241,14 +243,6 @@ JWT_AUTH = {
 SWAGGER_SETTINGS = {
     'SHOW_REQUEST_HEADERS': True,
     'SECURITY_DEFINITIONS': {
-        # 'api_key': {
-        #     'type': 'apiKey',
-        #     'in': 'header',
-        #     'name': 'Authorization'
-        # },
-        # 'Basic': {
-        #     'type': 'basic'
-        # },
         'Bearer': {
             'type': 'apiKey',
             'name': 'Authorization',
@@ -257,10 +251,6 @@ SWAGGER_SETTINGS = {
     },
     'USE_SESSION_AUTH': False,
     'JSON_EDITOR': True,
-    # 'LOGIN_URL': 'rest_framework:login',
-    # 'LOGOUT_URL': 'rest_framework:logout',
 }
-# LOGIN_URL = 'rest_framework:login'
-# LOGOUT_URL = 'rest_framework:logout'
 
 IMPORT_EXPORT_CSV_DELIMITER = '|'
