@@ -148,6 +148,9 @@ class ProfileDetail(APIView):
     if serializer.is_valid():
         serializer.save()
     else:
-        print('===== invalid serializer: ', item)
+        return Response(
+            serializer.errors,
+            status=status.HTTP_403_FORBIDDEN
+        )
     
     return Response(serializer.data)
