@@ -82,10 +82,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
+SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(SETTINGS_PATH, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -97,6 +98,12 @@ TEMPLATES = [
         },
     },
 ]
+
+
+# Find templates in the same folder as settings.py.
+# TEMPLATE_DIRS = (
+#     os.path.join(BASE_DIR, 'templates'),
+# )
 
 WSGI_APPLICATION = 'config.wsgi.application'
 

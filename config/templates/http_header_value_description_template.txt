@@ -1,0 +1,2 @@
+{% for row in data %}{% autoescape off %}"{{ row.0 }}": "{{ row.1 }}" "{{ row.2 }}",{% endautoescape %}
+{% endfor %}
