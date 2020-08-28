@@ -64,10 +64,10 @@ class LoginView(ObtainJSONWebToken):
                 return Response(
                     {
                         'success': False, 
-                        'message': 'User not found',
+                        'message': 'User name or password is incorrect',
                         'data': req
                     },
-                        status=status.HTTP_404_NOT_FOUND
+                        status=status.HTTP_401_UNAUTHORIZED
                     )
 
             if not user.check_password(password):
